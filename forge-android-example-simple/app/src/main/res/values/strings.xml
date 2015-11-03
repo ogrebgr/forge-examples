@@ -1,3 +1,30 @@
 <resources>
     <string name="app_name">Forge Android Example Simple</string>
+    <string name="act__main__tile">Main</string>
+
+
+    <string name="global_cancel">Cancel</string>
+    <string name="global_save">Save</string>
+    <string name="global_new">New</string>
+    <string name="global_edit">Edit</string>
+    <string name="global_del">Delete</string>
+    <string name="global_refresh">Refresh</string>
+
+    <string name="global_btn__save">Save</string>
+    <string name="global_btn__close">Close</string>
+    <string name="global_btn__yes">Yes</string>
+    <string name="global_btn__no">No</string>
+    <string name="global_btn__ok">OK</string>
+    <string name="global_btn__cancel">Cancel</string>
+    <string name="global_btn__done">Done</string>
+
+    <string name="act__main__btn_get_simple">Simple GET exchange</string>
+    <string name="act__get_simple__title">Act_GetSimple</string>
+    <string name="act__get_simple__btn_execute">Execute simple GET request</string>
+
+    <string name="dlg__generic_wait">Please wait…</string>
+
+    <string name="dlg__comm_problem_title">Communication problem</string>
+    <string name="dlg__comm_problem_msg">Problem occurred while communicating with the server. Please try again later.</string>
+
 </resources>
