@@ -26,5 +26,8 @@
 
     <string name="dlg__comm_problem_title">Communication problem</string>
     <string name="dlg__comm_problem_msg">Problem occurred while communicating with the server. Please try again later.</string>
+    <string name="act__get_param__title">GET with parameter</string>
+    <string name="act__get_param__et_param_hint">Enter an integer number</string>
+    <string name="act__main__btn_get_param">GET with parameter</string>
 
 </resources>

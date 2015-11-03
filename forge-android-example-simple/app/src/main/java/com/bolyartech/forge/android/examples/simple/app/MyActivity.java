@@ -1,5 +1,7 @@
 package com.bolyartech.forge.android.examples.simple.app;
 
+import android.os.Bundle;
+
 import com.bolyartech.forge.app_unit.ActivityComponentImpl;
 
 
@@ -9,5 +11,13 @@ import com.bolyartech.forge.app_unit.ActivityComponentImpl;
 abstract public class MyActivity extends ActivityComponentImpl {
     public MyApplication getMyApp() {
         return (MyApplication) super.getApplication();
+    }
+
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        setUnitManager(getMyApp().getUnitManager());
     }
 }

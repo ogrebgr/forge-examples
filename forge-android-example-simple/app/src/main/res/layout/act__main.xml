@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context="com.bolyartech.forge.android.examples.simple.units.Act_Main">
 
     <Button
@@ -12,4 +13,9 @@
         android:layout_height="wrap_content"
         android:text="@string/act__main__btn_get_simple"/>
 
+    <Button
+        android:id="@+id/btn_get_param"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/act__main__btn_get_param"/>
 </LinearLayout>

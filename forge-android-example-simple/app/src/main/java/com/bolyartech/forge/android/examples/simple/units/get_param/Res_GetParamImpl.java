@@ -1,12 +1,16 @@
-package com.bolyartech.forge.android.examples.simple.units.get_simple;
+package com.bolyartech.forge.android.examples.simple.units.get_param;
 
 import android.support.annotation.UiThread;
 
 import com.bolyartech.forge.android.examples.simple.app.MyForgeExchangeManager;
 import com.bolyartech.forge.android.examples.simple.app.MyResidentComponent;
 import com.bolyartech.forge.android.examples.simple.misc.ResponseCodes;
+import com.bolyartech.forge.android.examples.simple.units.get_simple.Act_GetSimple;
+import com.bolyartech.forge.android.examples.simple.units.get_simple.Res_GetSimple;
+import com.bolyartech.forge.android.examples.simple.units.get_simple.SimpleGetResult;
 import com.bolyartech.forge.exchange.Exchange;
 import com.bolyartech.forge.exchange.ExchangeOutcome;
+import com.bolyartech.forge.exchange.ForgeExchangeBuilder;
 import com.bolyartech.forge.exchange.ForgeExchangeResult;
 import com.bolyartech.forge.exchange.RestExchangeBuilder;
 import com.squareup.otto.Bus;
@@ -18,14 +22,14 @@ import org.json.JSONObject;
 /**
  * Created by ogre on 2015-11-01
  */
-public class Res_GetSimpleImpl extends MyResidentComponent implements Res_GetSimple {
+public class Res_GetParamImpl extends MyResidentComponent implements Res_GetParam {
     private State mState = State.IDLE;
-    private SimpleGetResult mLastSimpleGetResult;
+    private String mLastResult;
 
     private long mExchangeId;
 
 
-    public Res_GetSimpleImpl(String baseUrl, MyForgeExchangeManager myForgeExchangeManager, Bus bus) {
+    public Res_GetParamImpl(String baseUrl, MyForgeExchangeManager myForgeExchangeManager, Bus bus) {
         super(baseUrl, myForgeExchangeManager, bus);
     }
 
@@ -39,24 +43,28 @@ public class Res_GetSimpleImpl extends MyResidentComponent implements Res_GetSim
 
     @UiThread
     @Override
-    public void executeSimpleGet() {
+    public void executeGetParam(String value) {
         if (mState != State.IDLE) {
             throw new IllegalStateException("Not in IDLE state");
         }
 
         mState = State.WAITING_EXCHANGE;
         mExchangeId = getMyForgeExchangeManager().generateXId();
-        Exchange<ForgeExchangeResult> x = createForgeExchangeBuilder("get_simple.php")
-                .requestType(RestExchangeBuilder.RequestType.GET)
-                .build();
+
+        ForgeExchangeBuilder builder = createForgeExchangeBuilder("get_param.php");
+        builder.requestType(RestExchangeBuilder.RequestType.GET);
+        builder.addGetParameter("param", value);
+
+        Exchange<ForgeExchangeResult> x = builder.build();
         getMyForgeExchangeManager().executeExchange(x, mExchangeId);
     }
 
 
     @UiThread
+
     @Override
-    public SimpleGetResult getLastResult() {
-        return mLastSimpleGetResult;
+    public String getLastResult() {
+        return mLastResult;
     }
 
 
@@ -65,7 +73,7 @@ public class Res_GetSimpleImpl extends MyResidentComponent implements Res_GetSim
     public void reset() {
         if (mState == State.EXCHANGE_OK || mState == State.EXCHANGE_FAIL || mState == State.IDLE) {
             mState = State.IDLE;
-            mLastSimpleGetResult = null;
+            mLastResult = null;
         } else {
             throw new IllegalStateException("Cannot reset in WAITING_EXCHANGE state");
         }
@@ -85,10 +93,10 @@ public class Res_GetSimpleImpl extends MyResidentComponent implements Res_GetSim
             ForgeExchangeResult rez = outcome.getResult();
             int code = rez.getCode();
             if (code > 0) {
-                if (code == ResponseCodes.Oks.SIMPLE_GET_OK.getCode()) {
+                if (code == ResponseCodes.Oks.GET_PARAM_OK.getCode()) {
                     try {
                         JSONObject json = new JSONObject(rez.getPayload());
-                        mLastSimpleGetResult = new SimpleGetResult(json.getInt("var1"), json.getString("var2"));
+                        mLastResult = json.getString("param");
                         exchangeOk();
                     } catch (JSONException e) {
                         exchangeFailed();
@@ -109,12 +117,12 @@ public class Res_GetSimpleImpl extends MyResidentComponent implements Res_GetSim
         mState = State.EXCHANGE_OK;
 
 
-        final Act_GetSimple act = (Act_GetSimple) getActivity();
+        final Act_GetParam act = (Act_GetParam) getActivity();
         if (act != null) {
             act.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    act.onSimpleGetOk();
+                    act.onGetParamOk();
                 }
             });
         }
@@ -125,12 +133,12 @@ public class Res_GetSimpleImpl extends MyResidentComponent implements Res_GetSim
         mState = State.EXCHANGE_FAIL;
 
 
-        final Act_GetSimple act = (Act_GetSimple) getActivity();
+        final Act_GetParam act = (Act_GetParam) getActivity();
         if (act != null) {
             act.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    act.onSimpleGetFailed();
+                    act.onGetParamFailed();
                 }
             });
         }

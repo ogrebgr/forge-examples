@@ -12,7 +12,8 @@ public class ResponseCodes {
         SCREEN_NAME_OK(5),
         LOGOUT_OK(6),
         GCM_TOKEN_OK(50),
-        SIMPLE_GET_OK(100);
+        SIMPLE_GET_OK(100),
+        GET_PARAM_OK(101);
 
 
         private final int code;
