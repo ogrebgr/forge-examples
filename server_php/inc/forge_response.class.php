@@ -5,6 +5,8 @@
  * Time: 16:03
  */
 
+ini_set('xdebug.default_enable', false);
+ini_set('html_errors', false);
 
 require_once('response_codes.class.php');
 require_once('forge_response_container.class.php');

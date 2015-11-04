@@ -13,7 +13,8 @@ public class ResponseCodes {
         LOGOUT_OK(6),
         GCM_TOKEN_OK(50),
         SIMPLE_GET_OK(100),
-        GET_PARAM_OK(101);
+        GET_PARAM_OK(101),
+        POST_OK(102);
 
 
         private final int code;

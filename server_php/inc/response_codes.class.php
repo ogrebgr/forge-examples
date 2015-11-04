@@ -20,6 +20,7 @@ class Response_Codes {
 
         'SIMPLE_GET_OK' => 100,
         'GET_PARAMS_OK' => 101,
+        'POST_OK' => 102,
     );
 
     public static $errors = array(
