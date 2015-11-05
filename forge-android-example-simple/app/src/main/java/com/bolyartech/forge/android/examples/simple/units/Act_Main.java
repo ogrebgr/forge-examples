@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.view.View;
 
 import com.bolyartech.forge.adnroid.examples.simple.R;
+import com.bolyartech.forge.android.examples.simple.units.file_upload.Act_FileUpload;
 import com.bolyartech.forge.android.examples.simple.units.get_param.Act_GetParam;
 import com.bolyartech.forge.android.examples.simple.units.get_simple.Act_GetSimple;
 import com.bolyartech.forge.android.examples.simple.units.post.Act_Post;
@@ -49,6 +50,14 @@ public class Act_Main extends Activity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(Act_Main.this, Act_Post.class);
+                startActivity(intent);
+            }
+        });
+
+        ViewUtils.initButton(view, R.id.btn_upload, new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(Act_Main.this, Act_FileUpload.class);
                 startActivity(intent);
             }
         });

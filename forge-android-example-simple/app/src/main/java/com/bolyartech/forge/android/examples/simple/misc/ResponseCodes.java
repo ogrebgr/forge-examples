@@ -14,7 +14,8 @@ public class ResponseCodes {
         GCM_TOKEN_OK(50),
         SIMPLE_GET_OK(100),
         GET_PARAM_OK(101),
-        POST_OK(102);
+        POST_OK(102),
+        UPLOAD_OK(103);
 
 
         private final int code;
