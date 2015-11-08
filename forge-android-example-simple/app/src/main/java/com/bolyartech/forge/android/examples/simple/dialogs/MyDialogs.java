@@ -31,4 +31,24 @@ public class MyDialogs {
         }
     }
 
+
+
+    public static Df_Progress showProgressDialog(FragmentManager fm) {
+        Df_Progress fra = (Df_Progress) fm.findFragmentByTag(Df_Progress.DIALOG_TAG);
+        if (fra == null) {
+            fra = new Df_Progress();
+            fra.show(fm, Df_Progress.DIALOG_TAG);
+        }
+
+        return fra;
+    }
+
+
+    public static void hideProgressDialog(FragmentManager fm) {
+        DialogFragment df = (DialogFragment) fm.findFragmentByTag(Df_Progress.DIALOG_TAG);
+        if (df != null) {
+            df.dismiss();
+        }
+    }
+
 }

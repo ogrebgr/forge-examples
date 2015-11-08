@@ -39,4 +39,5 @@
     <string name="act__file_upload__btn_select_file">Select a file</string>
     <string name="act__file_upload__btn_upload">Upload</string>
     <string name="act__file_upload__tv_size">Server reported file size of %s bytes</string>
+    <string name="dlg__progress__title">Progress</string>
 </resources>

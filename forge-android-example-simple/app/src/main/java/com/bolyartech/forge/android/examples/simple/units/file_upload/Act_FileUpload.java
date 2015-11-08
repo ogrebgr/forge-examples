@@ -1,21 +1,18 @@
 package com.bolyartech.forge.android.examples.simple.units.file_upload;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
 import com.bolyartech.forge.adnroid.examples.simple.R;
 import com.bolyartech.forge.android.examples.simple.app.MyActivity;
+import com.bolyartech.forge.android.examples.simple.dialogs.Df_Progress;
 import com.bolyartech.forge.android.examples.simple.dialogs.MyDialogs;
-import com.bolyartech.forge.android.examples.simple.units.get_param.Res_GetParam;
 import com.bolyartech.forge.app_unit.ResidentComponent;
 import com.bolyartech.forge.misc.FileUtils;
 import com.bolyartech.forge.misc.ViewUtils;
@@ -33,6 +30,8 @@ public class Act_FileUpload extends MyActivity {
 
 
     private Res_FileUpload mResident;
+
+    private Df_Progress mProgressDialogFragment;
 
 
     @Override
@@ -61,6 +60,7 @@ public class Act_FileUpload extends MyActivity {
         mBtnUpload = ViewUtils.initButton(view, R.id.btn_upload, new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                showProgressDialog();
                 mResident.upload(new File(mFilePath));
             }
         });
@@ -105,7 +105,7 @@ public class Act_FileUpload extends MyActivity {
                 //nothing
                 break;
             case WAITING_EXCHANGE:
-                MyDialogs.showCommWaitDialog(getFragmentManager());
+                showProgressDialog();
                 break;
             case EXCHANGE_OK:
                 onUploadOk();
@@ -119,6 +119,7 @@ public class Act_FileUpload extends MyActivity {
 
     void onUploadOk() {
         MyDialogs.hideCommWaitDialog(getFragmentManager());
+        dismissProgressDialog();
         mTvFileSize.setText(getString(R.string.act__file_upload__tv_size, Long.toString(mResident.getLastResult())));
 
         mResident.reset();
@@ -133,7 +134,19 @@ public class Act_FileUpload extends MyActivity {
 
 
     void onProgress(float progress) {
+        mProgressDialogFragment.setProgress((int) progress);
+    }
 
+
+    private void showProgressDialog() {
+        mProgressDialogFragment = MyDialogs.showProgressDialog(getFragmentManager());
+    }
+
+
+    private void dismissProgressDialog() {
+        if (mProgressDialogFragment != null) {
+            mProgressDialogFragment.dismiss();
+        }
     }
 
 }
