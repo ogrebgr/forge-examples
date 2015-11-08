@@ -9,7 +9,7 @@ import java.io.File;
 /**
  * Created by ogre on 2015-11-05 08:39
  */
-public interface Res_FileUpload extends ForgeExchangeFunctionality.Listener<ForgeExchangeResult>{
+public interface Res_FileUpload {
     enum State {
         IDLE,
         WAITING_EXCHANGE,

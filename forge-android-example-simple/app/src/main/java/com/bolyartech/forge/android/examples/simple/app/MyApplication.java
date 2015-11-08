@@ -6,6 +6,7 @@ import com.bolyartech.forge.app_unit.UnitManager;
 import com.bolyartech.forge.app_unit.UnitManagerImpl;
 import com.bolyartech.forge.exchange.ForgeExchangeFunctionality;
 import com.bolyartech.forge.http.SimpleHttpClient;
+import com.bolyartech.forge.http.functionality.HttpFunctionality;
 import com.bolyartech.forge.http.functionality.HttpFunctionalityImpl;
 import com.squareup.otto.Bus;
 
@@ -19,6 +20,7 @@ public class MyApplication extends Application {
     private ForgeExchangeFunctionality mForgeExchangeFunctionality;
     private UnitManager mUnitManager;
     private MyForgeExchangeManager mMyForgeExchangeManager;
+    private HttpFunctionality mHttpFunctionality;
     private Bus mBus = new Bus();
 
     @Override
@@ -27,7 +29,8 @@ public class MyApplication extends Application {
 
         mUnitManager = new MyUnitManager();
 
-        mForgeExchangeFunctionality = new ForgeExchangeFunctionality(new HttpFunctionalityImpl(new SimpleHttpClient()));
+        mHttpFunctionality = new HttpFunctionalityImpl(new SimpleHttpClient());
+        mForgeExchangeFunctionality = new ForgeExchangeFunctionality(mHttpFunctionality);
         mForgeExchangeFunctionality.start();
 
         mMyForgeExchangeManager = new MyForgeExchangeManager(mUnitManager, mForgeExchangeFunctionality);
@@ -55,5 +58,10 @@ public class MyApplication extends Application {
 
     public Bus getBus() {
         return mBus;
+    }
+
+
+    public HttpFunctionality getHttpFunctionality() {
+        return mHttpFunctionality;
     }
 }

@@ -72,9 +72,10 @@ public class Act_FileUpload extends MyActivity {
 
     @Override
     public ResidentComponent createResidentComponent() {
-        return new Res_FileUploadImpl(getString(R.string.server_base_url),
-                getMyApp().getMyForgeExchangeManager(),
-                getMyApp().getBus());
+        return new Res_FileUploadImpl(
+                getMyApp().getBus(),
+                getString(R.string.server_base_url),
+                getMyApp().getHttpFunctionality());
     }
 
 
@@ -116,7 +117,7 @@ public class Act_FileUpload extends MyActivity {
     }
 
 
-    public void onUploadOk() {
+    void onUploadOk() {
         MyDialogs.hideCommWaitDialog(getFragmentManager());
         mTvFileSize.setText(getString(R.string.act__file_upload__tv_size, Long.toString(mResident.getLastResult())));
 
@@ -124,9 +125,15 @@ public class Act_FileUpload extends MyActivity {
     }
 
 
-    public void onUploadFailed() {
+    void onUploadFailed() {
         MyDialogs.hideCommWaitDialog(getFragmentManager());
         mResident.reset();
         MyDialogs.showCommProblemDialog(getFragmentManager());
     }
+
+
+    void onProgress(float progress) {
+
+    }
+
 }

@@ -1,33 +1,52 @@
 package com.bolyartech.forge.android.examples.simple.units.file_upload;
 
-import com.bolyartech.forge.android.examples.simple.app.MyForgeExchangeManager;
-import com.bolyartech.forge.android.examples.simple.app.MyResidentComponent;
-import com.bolyartech.forge.android.examples.simple.misc.ResponseCodes;
-import com.bolyartech.forge.exchange.Exchange;
-import com.bolyartech.forge.exchange.ExchangeOutcome;
-import com.bolyartech.forge.exchange.ForgeExchangeBuilder;
+import com.bolyartech.forge.android.examples.simple.app.BusResidentComponent;
+import com.bolyartech.forge.android.examples.simple.misc.GsonResultProducer;
 import com.bolyartech.forge.exchange.ForgeExchangeResult;
-import com.bolyartech.forge.exchange.RestExchangeBuilder;
+import com.bolyartech.forge.exchange.ResultProducer;
+import com.bolyartech.forge.http.functionality.HttpFunctionality;
+import com.bolyartech.forge.http.request.PostRequestBuilder;
+import com.bolyartech.forge.http.request.ProgressListener;
 import com.squareup.otto.Bus;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.IOException;
 
 
 /**
  * Created by ogre on 2015-11-05 10:18
  */
-public class Res_FileUploadImpl extends MyResidentComponent implements Res_FileUpload {
+public class Res_FileUploadImpl extends BusResidentComponent implements Res_FileUpload {
     private State mState = State.IDLE;
 
-    private long mExchangeId;
     private long mLastResult;
 
+    private final String mBaseUrl;
+    private final HttpFunctionality mHttpFunc;
 
-    public Res_FileUploadImpl(String baseUrl, MyForgeExchangeManager myForgeExchangeManager, Bus bus) {
-        super(baseUrl, myForgeExchangeManager, bus);
+    private ProgressListener mProgressListener = new ProgressListener() {
+        @Override
+        public void onProgress(final float progress) {
+            final Act_FileUpload act = (Act_FileUpload) getActivity();
+            if (act != null) {
+                act.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        act.onProgress(progress);
+                    }
+                });
+            }
+        }
+    };
+
+
+    public Res_FileUploadImpl(Bus bus, String baseUrl, HttpFunctionality httpFunc) {
+        super(bus);
+        mBaseUrl = baseUrl;
+        mHttpFunc = httpFunc;
     }
 
 
@@ -39,12 +58,35 @@ public class Res_FileUploadImpl extends MyResidentComponent implements Res_FileU
 
 
     @Override
-    public void upload(File file) {
-        ForgeExchangeBuilder builder = createForgeExchangeBuilder("upload.php");
-        builder.requestType(RestExchangeBuilder.RequestType.POST);
-        builder.addFileToUpload("file_upload", file);
-        Exchange<ForgeExchangeResult> x = builder.build();
-        getMyForgeExchangeManager().executeExchange(x, mExchangeId);
+    public void upload(final File file) {
+        Thread t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                PostRequestBuilder builder = new PostRequestBuilder(mBaseUrl + "upload.php");
+                builder.fileToUpload("file_upload", file);
+                builder.progressListener(mProgressListener);
+                try {
+                    String rez = mHttpFunc.execute(builder.build());
+                    GsonResultProducer rp = new GsonResultProducer();
+                    try {
+                        ForgeExchangeResult frez = rp.produce(rez, ForgeExchangeResult.class);
+                        try {
+                            JSONObject jobj = new JSONObject(frez.getPayload());
+                            mLastResult = jobj.getLong("file_size");
+                            uploadOk();
+                        } catch (JSONException e) {
+                            uploadFailed();
+                        }
+                    } catch (ResultProducer.ResultProducerException e) {
+                        uploadFailed();
+                    }
+
+                } catch (IOException e) {
+                    uploadFailed();
+                }
+            }
+        });
+        t.start();
     }
 
 
@@ -60,40 +102,9 @@ public class Res_FileUploadImpl extends MyResidentComponent implements Res_FileU
     }
 
 
-    @Override
-    public void onExchangeCompleted(ExchangeOutcome<ForgeExchangeResult> outcome, long exchangeId) {
-        if (exchangeId == mExchangeId) {
-            handleExchangeOutcome(outcome, exchangeId);
-        }
-    }
 
 
-    private void handleExchangeOutcome(ExchangeOutcome<ForgeExchangeResult> outcome, long exchangeId) {
-        if (!outcome.isError()) {
-            ForgeExchangeResult rez = outcome.getResult();
-            int code = rez.getCode();
-            if (code > 0) {
-                if (code == ResponseCodes.Oks.UPLOAD_OK.getCode()) {
-                    try {
-                        JSONObject json = new JSONObject(rez.getPayload());
-                        mLastResult = json.getLong("file_size");
-                        exchangeOk();
-                    } catch (JSONException e) {
-                        exchangeFailed();
-                    }
-                } else {
-                    exchangeFailed();
-                }
-            } else {
-                exchangeFailed();
-            }
-        } else {
-            exchangeFailed();
-        }
-    }
-
-
-    private void exchangeOk() {
+    private void uploadOk() {
         mState = State.EXCHANGE_OK;
 
 
@@ -109,7 +120,7 @@ public class Res_FileUploadImpl extends MyResidentComponent implements Res_FileU
     }
 
 
-    private void exchangeFailed() {
+    private void uploadFailed() {
         mState = State.EXCHANGE_FAIL;
 
 
