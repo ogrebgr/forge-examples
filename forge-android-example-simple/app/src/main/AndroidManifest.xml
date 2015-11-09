@@ -44,6 +44,11 @@
             android:label="@string/act__file_upload__title"
             android:theme="@style/AppTheme.NoActionBar" >
         </activity>
+        <activity
+            android:name="com.bolyartech.forge.android.examples.simple.units.file_download.Act_FileDownload"
+            android:label="@string/act__download__title"
+            android:theme="@style/AppTheme.NoActionBar" >
+        </activity>
     </application>
 
 </manifest>

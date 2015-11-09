@@ -12,9 +12,9 @@ import java.io.File;
 public interface Res_FileUpload {
     enum State {
         IDLE,
-        WAITING_EXCHANGE,
-        EXCHANGE_OK,
-        EXCHANGE_FAIL
+        UPLOADING,
+        UPLOAD_OK,
+        UPLOAD_FAIL
     }
 
 
@@ -22,4 +22,5 @@ public interface Res_FileUpload {
     void upload(File file);
     void reset();
     long getLastResult();
+    void abortUpload();
 }

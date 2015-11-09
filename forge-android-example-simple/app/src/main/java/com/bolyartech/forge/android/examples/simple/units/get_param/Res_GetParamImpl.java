@@ -75,7 +75,7 @@ public class Res_GetParamImpl extends MyResidentComponent implements Res_GetPara
             mState = State.IDLE;
             mLastResult = null;
         } else {
-            throw new IllegalStateException("Cannot reset in WAITING_EXCHANGE state");
+            throw new IllegalStateException("Cannot reset in UPLOADING state");
         }
     }
 

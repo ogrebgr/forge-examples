@@ -67,7 +67,7 @@ public class Res_GetSimpleImpl extends MyResidentComponent implements Res_GetSim
             mState = State.IDLE;
             mLastSimpleGetResult = null;
         } else {
-            throw new IllegalStateException("Cannot reset in WAITING_EXCHANGE state");
+            throw new IllegalStateException("Cannot reset in UPLOADING state");
         }
     }
 

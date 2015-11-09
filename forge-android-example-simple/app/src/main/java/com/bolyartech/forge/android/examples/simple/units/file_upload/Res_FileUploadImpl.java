@@ -15,6 +15,8 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.IOException;
 
+import forge.apache.http.client.methods.HttpPost;
+
 
 /**
  * Created by ogre on 2015-11-05 10:18
@@ -26,6 +28,9 @@ public class Res_FileUploadImpl extends BusResidentComponent implements Res_File
 
     private final String mBaseUrl;
     private final HttpFunctionality mHttpFunc;
+
+    private HttpPost mPostRequest;
+
 
     private ProgressListener mProgressListener = new ProgressListener() {
         @Override
@@ -58,41 +63,49 @@ public class Res_FileUploadImpl extends BusResidentComponent implements Res_File
 
 
     @Override
-    public void upload(final File file) {
-        Thread t = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                PostRequestBuilder builder = new PostRequestBuilder(mBaseUrl + "upload.php");
-                builder.fileToUpload("file_upload", file);
-                builder.progressListener(mProgressListener);
-                try {
-                    String rez = mHttpFunc.execute(builder.build());
-                    GsonResultProducer rp = new GsonResultProducer();
+    public synchronized void upload(final File file) {
+        if (mState == State.IDLE) {
+            mState = State.UPLOADING;
+            Thread t = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    PostRequestBuilder builder = new PostRequestBuilder(mBaseUrl + "upload.php");
+                    builder.fileToUpload("file_upload", file);
+                    builder.progressListener(mProgressListener);
                     try {
-                        ForgeExchangeResult frez = rp.produce(rez, ForgeExchangeResult.class);
+                        mPostRequest = builder.build();
+
+                        String rez = mHttpFunc.execute(mPostRequest);
+                        GsonResultProducer rp = new GsonResultProducer();
                         try {
-                            JSONObject jobj = new JSONObject(frez.getPayload());
-                            mLastResult = jobj.getLong("file_size");
-                            uploadOk();
-                        } catch (JSONException e) {
+                            ForgeExchangeResult frez = rp.produce(rez, ForgeExchangeResult.class);
+                            try {
+                                JSONObject jobj = new JSONObject(frez.getPayload());
+                                mLastResult = jobj.getLong("file_size");
+                                uploadOk();
+                            } catch (JSONException e) {
+                                uploadFailed();
+                            }
+                        } catch (ResultProducer.ResultProducerException e) {
                             uploadFailed();
                         }
-                    } catch (ResultProducer.ResultProducerException e) {
+
+                    } catch (IOException e) {
                         uploadFailed();
                     }
-
-                } catch (IOException e) {
-                    uploadFailed();
                 }
-            }
-        });
-        t.start();
+            });
+            t.start();
+        } else {
+            throw new IllegalStateException("Not in IDLE state");
+        }
     }
 
 
     @Override
-    public void reset() {
+    public synchronized void reset() {
         mState = State.IDLE;
+        mPostRequest = null;
     }
 
 
@@ -102,36 +115,45 @@ public class Res_FileUploadImpl extends BusResidentComponent implements Res_File
     }
 
 
-
-
-    private void uploadOk() {
-        mState = State.EXCHANGE_OK;
-
-
-        final Act_FileUpload act = (Act_FileUpload) getActivity();
-        if (act != null) {
-            act.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    act.onUploadOk();
-                }
-            });
+    @Override
+    public synchronized void abortUpload() {
+        if (mState == State.UPLOADING) {
+            mPostRequest.abort();
         }
     }
 
 
-    private void uploadFailed() {
-        mState = State.EXCHANGE_FAIL;
+    private synchronized void uploadOk() {
+        if (mPostRequest != null && !mPostRequest.isAborted()) {
+            mState = State.UPLOAD_OK;
+
+            final Act_FileUpload act = (Act_FileUpload) getActivity();
+            if (act != null) {
+                act.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        act.onUploadOk();
+                    }
+                });
+            }
+        }
+    }
 
 
-        final Act_FileUpload act = (Act_FileUpload) getActivity();
-        if (act != null) {
-            act.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    act.onUploadFailed();
-                }
-            });
+    private synchronized void uploadFailed() {
+        if (mPostRequest != null && !mPostRequest.isAborted()) {
+            mState = State.UPLOAD_FAIL;
+
+
+            final Act_FileUpload act = (Act_FileUpload) getActivity();
+            if (act != null) {
+                act.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        act.onUploadFailed();
+                    }
+                });
+            }
         }
     }
 }

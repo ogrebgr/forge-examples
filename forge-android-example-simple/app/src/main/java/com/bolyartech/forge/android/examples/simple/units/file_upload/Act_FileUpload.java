@@ -1,7 +1,6 @@
 package com.bolyartech.forge.android.examples.simple.units.file_upload;
 
 import android.app.Activity;
-import android.app.ProgressDialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -20,7 +19,7 @@ import com.bolyartech.forge.misc.ViewUtils;
 import java.io.File;
 
 
-public class Act_FileUpload extends MyActivity {
+public class Act_FileUpload extends MyActivity implements Df_Progress.Listener {
     private static final int PICKFILE_REQUEST_CODE = 1;
     private String mFilePath;
 
@@ -61,7 +60,10 @@ public class Act_FileUpload extends MyActivity {
             @Override
             public void onClick(View v) {
                 showProgressDialog();
-                mResident.upload(new File(mFilePath));
+
+                if (mResident.getState() == Res_FileUpload.State.IDLE) { // prevents double tap
+                    mResident.upload(new File(mFilePath));
+                }
             }
         });
 
@@ -104,13 +106,13 @@ public class Act_FileUpload extends MyActivity {
             case IDLE:
                 //nothing
                 break;
-            case WAITING_EXCHANGE:
+            case UPLOADING:
                 showProgressDialog();
                 break;
-            case EXCHANGE_OK:
+            case UPLOAD_OK:
                 onUploadOk();
                 break;
-            case EXCHANGE_FAIL:
+            case UPLOAD_FAIL:
                 onUploadFailed();
                 break;
         }
@@ -118,7 +120,6 @@ public class Act_FileUpload extends MyActivity {
 
 
     void onUploadOk() {
-        MyDialogs.hideCommWaitDialog(getFragmentManager());
         dismissProgressDialog();
         mTvFileSize.setText(getString(R.string.act__file_upload__tv_size, Long.toString(mResident.getLastResult())));
 
@@ -127,7 +128,7 @@ public class Act_FileUpload extends MyActivity {
 
 
     void onUploadFailed() {
-        MyDialogs.hideCommWaitDialog(getFragmentManager());
+        dismissProgressDialog();
         mResident.reset();
         MyDialogs.showCommProblemDialog(getFragmentManager());
     }
@@ -149,4 +150,10 @@ public class Act_FileUpload extends MyActivity {
         }
     }
 
+
+    @Override
+    public void onProgressDialogClosed() {
+        mResident.abortUpload();
+        mResident.reset();
+    }
 }

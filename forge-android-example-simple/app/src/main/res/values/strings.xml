@@ -32,6 +32,7 @@
     <string name="act__main__btn_get_param">GET with parameter</string>
     <string name="act__main__btn_post">POST with parameter</string>
     <string name="act__main__btn_upload">File upload</string>
+    <string name="act__main__btn_download">File download</string>
 
     <string name="act__post__title">POST</string>
     <string name="act__post__btn_execute">Execute POST with param</string>
@@ -40,4 +41,6 @@
     <string name="act__file_upload__btn_upload">Upload</string>
     <string name="act__file_upload__tv_size">Server reported file size of %s bytes</string>
     <string name="dlg__progress__title">Progress</string>
+    <string name="act__download__title">Download file</string>
+    <string name="act__file_upload__btn_download">Download</string>
 </resources>
