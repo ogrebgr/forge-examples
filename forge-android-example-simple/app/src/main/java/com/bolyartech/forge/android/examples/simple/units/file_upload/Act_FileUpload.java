@@ -152,7 +152,7 @@ public class Act_FileUpload extends MyActivity implements Df_Progress.Listener {
 
 
     @Override
-    public void onProgressDialogClosed() {
+    public void onProgressDialogCancelled() {
         mResident.abortUpload();
         mResident.reset();
     }

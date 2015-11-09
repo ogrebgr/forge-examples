@@ -113,7 +113,7 @@ public class Act_FileDownload extends MyActivity implements Df_Progress.Listener
 
 
     @Override
-    public void onProgressDialogClosed() {
+    public void onProgressDialogCancelled() {
         if (mResident != null) {
             if (mResident.getState() == Res_FileDownload.State.DOWNLOADING) {
                 mResident.abortDownload();

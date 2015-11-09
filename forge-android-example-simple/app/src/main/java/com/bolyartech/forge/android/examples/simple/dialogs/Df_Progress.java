@@ -45,16 +45,16 @@ public class Df_Progress extends DialogFragment {
 
 
     @Override
-    public void onDismiss(DialogInterface dialog) {
+    public void onCancel(DialogInterface dialog) {
         super.onDismiss(dialog);
         if (mListener != null) {
-            mListener.onProgressDialogClosed();
+            mListener.onProgressDialogCancelled();
         }
     }
 
 
     public interface Listener {
-        void onProgressDialogClosed();
+        void onProgressDialogCancelled();
     }
 
 
