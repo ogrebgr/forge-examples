@@ -15,7 +15,7 @@ import com.bolyartech.forge.misc.ForgeExchangeManagerImpl;
  * Created by ogre on 2015-11-01 16:07
  */
 public class MyForgeExchangeManager extends ForgeExchangeManagerImpl {
-    public MyForgeExchangeManager(UnitManager mUnitManager, ForgeExchangeFunctionality mForgeExchangeFunctionality) {
-        super(mUnitManager, mForgeExchangeFunctionality);
+    public MyForgeExchangeManager(UnitManager unitManager, ForgeExchangeFunctionality forgeExchangeFunctionality) {
+        super(unitManager, forgeExchangeFunctionality);
     }
 }

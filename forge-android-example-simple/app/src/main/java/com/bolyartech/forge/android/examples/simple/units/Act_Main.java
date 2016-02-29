@@ -12,7 +12,7 @@ import com.bolyartech.forge.android.examples.simple.units.file_upload.Act_FileUp
 import com.bolyartech.forge.android.examples.simple.units.get_param.Act_GetParam;
 import com.bolyartech.forge.android.examples.simple.units.get_simple.Act_GetSimple;
 import com.bolyartech.forge.android.examples.simple.units.post.Act_Post;
-import com.bolyartech.forge.misc.ViewUtils;
+import com.bolyartech.forge.android.misc.ViewUtils;
 
 
 public class Act_Main extends Activity {

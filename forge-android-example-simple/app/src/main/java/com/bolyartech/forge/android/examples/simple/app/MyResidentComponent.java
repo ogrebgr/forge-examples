@@ -1,11 +1,7 @@
 package com.bolyartech.forge.android.examples.simple.app;
 
 import com.bolyartech.forge.android.examples.simple.misc.GsonResultProducer;
-import com.bolyartech.forge.app_unit.AbstractResidentComponent;
-import com.bolyartech.forge.exchange.ForgeExchangeBuilder;
-import com.bolyartech.forge.exchange.ForgeExchangeResult;
-import com.bolyartech.forge.http.functionality.HttpFunctionality;
-import com.bolyartech.forge.misc.AndroidEventPoster;
+import com.bolyartech.forge.android.misc.AndroidEventPoster;
 import com.squareup.otto.Bus;
 
 

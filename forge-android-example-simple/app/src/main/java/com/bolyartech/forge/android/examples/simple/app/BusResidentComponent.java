@@ -1,6 +1,6 @@
 package com.bolyartech.forge.android.examples.simple.app;
 
-import com.bolyartech.forge.app_unit.AbstractResidentComponent;
+import com.bolyartech.forge.android.app_unit.AbstractResidentComponent;
 import com.squareup.otto.Bus;
 
 

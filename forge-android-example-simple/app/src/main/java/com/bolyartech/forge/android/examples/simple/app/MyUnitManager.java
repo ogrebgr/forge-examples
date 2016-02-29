@@ -1,6 +1,7 @@
 package com.bolyartech.forge.android.examples.simple.app;
 
-import com.bolyartech.forge.app_unit.UnitManagerImpl;
+
+import com.bolyartech.forge.android.app_unit.UnitManagerImpl;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;

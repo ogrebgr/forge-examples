@@ -9,8 +9,7 @@ import com.bolyartech.forge.adnroid.examples.simple.R;
 import com.bolyartech.forge.android.examples.simple.app.MyActivity;
 import com.bolyartech.forge.android.examples.simple.dialogs.MyDialogs;
 import com.bolyartech.forge.android.examples.simple.units.get_simple.SimpleGetResult;
-import com.bolyartech.forge.app_unit.ResidentComponent;
-import com.bolyartech.forge.misc.ViewUtils;
+import com.bolyartech.forge.android.misc.ViewUtils;
 
 
 public class Act_GetParam extends MyActivity {

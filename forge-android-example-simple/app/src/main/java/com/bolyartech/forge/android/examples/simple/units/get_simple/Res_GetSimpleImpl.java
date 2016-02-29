@@ -5,10 +5,9 @@ import android.support.annotation.UiThread;
 import com.bolyartech.forge.android.examples.simple.app.MyForgeExchangeManager;
 import com.bolyartech.forge.android.examples.simple.app.MyResidentComponent;
 import com.bolyartech.forge.android.examples.simple.misc.ResponseCodes;
-import com.bolyartech.forge.exchange.Exchange;
-import com.bolyartech.forge.exchange.ExchangeOutcome;
-import com.bolyartech.forge.exchange.ForgeExchangeResult;
-import com.bolyartech.forge.exchange.RestExchangeBuilder;
+import com.bolyartech.forge.base.exchange.Exchange;
+import com.bolyartech.forge.base.exchange.ExchangeOutcome;
+import com.bolyartech.forge.base.exchange.ForgeExchangeResult;
 import com.squareup.otto.Bus;
 
 import org.json.JSONException;

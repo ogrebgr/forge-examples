@@ -1,8 +1,8 @@
 package com.bolyartech.forge.android.examples.simple.units.get_simple;
 
-import com.bolyartech.forge.app_unit.ResidentComponent;
-import com.bolyartech.forge.exchange.ForgeExchangeFunctionality;
-import com.bolyartech.forge.exchange.ForgeExchangeResult;
+
+import com.bolyartech.forge.android.app_unit.ResidentComponent;
+import com.bolyartech.forge.base.exchange.ForgeExchangeResult;
 
 
 /**
