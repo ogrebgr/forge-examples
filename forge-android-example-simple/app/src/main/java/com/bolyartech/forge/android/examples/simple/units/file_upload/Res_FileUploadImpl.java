@@ -40,10 +40,6 @@ public class Res_FileUploadImpl extends BusResidentComponent implements Res_File
 
     private float mFileSizeOnePercent;
 
-    private CountingFileRequestBody mFileBody;
-
-    private boolean mAborted = false;
-
     private Call mCall;
 
 
@@ -67,7 +63,6 @@ public class Res_FileUploadImpl extends BusResidentComponent implements Res_File
         super(bus);
         mBaseUrl = baseUrl;
         mOkHttpClient = okHttpClient;
-        Call c;
     }
 
 
@@ -80,17 +75,16 @@ public class Res_FileUploadImpl extends BusResidentComponent implements Res_File
     @Override
     public synchronized void upload(final File file, final MediaType mt) {
         if (mState == State.IDLE) {
-            mAborted = false;
             mState = State.UPLOADING;
             mFileSizeOnePercent = file.length() / 100f;
             Thread t = new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    mFileBody = new CountingFileRequestBody(file, mt, mProgressListener);
+                    RequestBody fileBody = new CountingFileRequestBody(file, mt, mProgressListener);
 
                     RequestBody requestBody = new MultipartBody.Builder()
                             .setType(MultipartBody.FORM)
-                            .addFormDataPart("file_upload", file.getName(), mFileBody)
+                            .addFormDataPart("file_upload", file.getName(), fileBody)
                             .build();
 
 
@@ -142,7 +136,6 @@ public class Res_FileUploadImpl extends BusResidentComponent implements Res_File
     @Override
     public synchronized void reset() {
         mState = State.IDLE;
-        mFileBody = null;
     }
 
 
@@ -155,7 +148,6 @@ public class Res_FileUploadImpl extends BusResidentComponent implements Res_File
     @Override
     public synchronized void abortUpload() {
         if (mState == State.UPLOADING) {
-            mAborted = true;
             if (mCall != null) {
                 mCall.cancel();
             }
