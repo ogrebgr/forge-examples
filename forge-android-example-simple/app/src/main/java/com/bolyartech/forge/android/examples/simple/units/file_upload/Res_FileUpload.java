@@ -1,9 +1,9 @@
 package com.bolyartech.forge.android.examples.simple.units.file_upload;
 
-import com.bolyartech.forge.exchange.ForgeExchangeFunctionality;
-import com.bolyartech.forge.exchange.ForgeExchangeResult;
 
 import java.io.File;
+
+import okhttp3.MediaType;
 
 
 /**
@@ -19,7 +19,7 @@ public interface Res_FileUpload {
 
 
     State getState();
-    void upload(File file);
+    void upload(File file, MediaType mt);
     void reset();
     long getLastResult();
     void abortUpload();

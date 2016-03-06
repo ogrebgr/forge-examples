@@ -2,14 +2,14 @@ package com.bolyartech.forge.android.examples.simple.units.post;
 
 import android.support.annotation.UiThread;
 
-import com.bolyartech.forge.android.examples.simple.app.MyForgeExchangeManager;
 import com.bolyartech.forge.android.examples.simple.app.MyResidentComponent;
 import com.bolyartech.forge.android.examples.simple.misc.ResponseCodes;
-import com.bolyartech.forge.exchange.Exchange;
-import com.bolyartech.forge.exchange.ExchangeOutcome;
-import com.bolyartech.forge.exchange.ForgeExchangeBuilder;
-import com.bolyartech.forge.exchange.ForgeExchangeResult;
-import com.bolyartech.forge.exchange.RestExchangeBuilder;
+import com.bolyartech.forge.base.exchange.ForgeExchangeResult;
+import com.bolyartech.forge.base.exchange.builders.ForgeGetHttpExchangeBuilder;
+import com.bolyartech.forge.base.exchange.builders.ForgePostHttpExchangeBuilder;
+import com.bolyartech.forge.base.http.HttpFunctionality;
+import com.bolyartech.forge.base.task.ExchangeManager;
+import com.bolyartech.forge.base.task.ForgeExchangeManager;
 import com.squareup.otto.Bus;
 
 import org.json.JSONException;
@@ -19,15 +19,15 @@ import org.json.JSONObject;
 /**
  * Created by ogre on 2015-11-04 10:57
  */
-public class Res_PostImpl extends MyResidentComponent implements Res_Post {
+public class Res_PostImpl extends MyResidentComponent implements Res_Post, ExchangeManager.Listener<ForgeExchangeResult> {
     private State mState = State.IDLE;
     private String mLastResult;
 
     private long mExchangeId;
 
 
-    public Res_PostImpl(String baseUrl, MyForgeExchangeManager myForgeExchangeManager, Bus bus) {
-        super(baseUrl, myForgeExchangeManager, bus);
+    public Res_PostImpl(String baseUrl, ForgeExchangeManager forgeExchangeManager, Bus bus, HttpFunctionality httpFunctionality) {
+        super(baseUrl, forgeExchangeManager, bus, httpFunctionality);
     }
 
 
@@ -46,14 +46,14 @@ public class Res_PostImpl extends MyResidentComponent implements Res_Post {
         }
 
         mState = State.WAITING_EXCHANGE;
-        mExchangeId = getMyForgeExchangeManager().generateXId();
 
-        ForgeExchangeBuilder builder = createForgeExchangeBuilder("post.php");
-        builder.requestType(RestExchangeBuilder.RequestType.POST);
+        ForgePostHttpExchangeBuilder builder = createForgePostHttpExchangeBuilder("get_param.php");
         builder.addPostParameter("param", value);
 
-        Exchange<ForgeExchangeResult> x = builder.build();
-        getMyForgeExchangeManager().executeExchange(x, mExchangeId);
+
+        ForgeExchangeManager em = getForgeExchangeManager();
+        mExchangeId = em.generateTaskId();
+        em.executeExchange(builder.build(), mExchangeId);
     }
 
 
@@ -77,25 +77,22 @@ public class Res_PostImpl extends MyResidentComponent implements Res_Post {
     }
 
 
+
     @Override
-    public void onExchangeCompleted(ExchangeOutcome<ForgeExchangeResult> outcome, long exchangeId) {
+    public void onExchangeOutcome(long exchangeId, boolean isSuccess, ForgeExchangeResult result) {
         if (exchangeId == mExchangeId) {
-            handleExchangeOutcome(outcome, exchangeId);
-        }
-    }
-
-
-    private void handleExchangeOutcome(ExchangeOutcome<ForgeExchangeResult> outcome, long exchangeId) {
-        if (!outcome.isError()) {
-            ForgeExchangeResult rez = outcome.getResult();
-            int code = rez.getCode();
-            if (code > 0) {
-                if (code == ResponseCodes.Oks.POST_OK.getCode()) {
-                    try {
-                        JSONObject json = new JSONObject(rez.getPayload());
-                        mLastResult = json.getString("param");
-                        exchangeOk();
-                    } catch (JSONException e) {
+            if (isSuccess) {
+                int code = result.getCode();
+                if (code > 0) {
+                    if (code == ResponseCodes.Oks.POST_OK.getCode()) {
+                        try {
+                            JSONObject json = new JSONObject(result.getPayload());
+                            mLastResult = json.getString("param");
+                            exchangeOk();
+                        } catch (JSONException e) {
+                            exchangeFailed();
+                        }
+                    } else {
                         exchangeFailed();
                     }
                 } else {
@@ -104,8 +101,6 @@ public class Res_PostImpl extends MyResidentComponent implements Res_Post {
             } else {
                 exchangeFailed();
             }
-        } else {
-            exchangeFailed();
         }
     }
 

@@ -2,12 +2,13 @@ package com.bolyartech.forge.android.examples.simple.units.get_simple;
 
 import android.support.annotation.UiThread;
 
-import com.bolyartech.forge.android.examples.simple.app.MyForgeExchangeManager;
 import com.bolyartech.forge.android.examples.simple.app.MyResidentComponent;
 import com.bolyartech.forge.android.examples.simple.misc.ResponseCodes;
-import com.bolyartech.forge.base.exchange.Exchange;
-import com.bolyartech.forge.base.exchange.ExchangeOutcome;
 import com.bolyartech.forge.base.exchange.ForgeExchangeResult;
+import com.bolyartech.forge.base.exchange.builders.ForgeGetHttpExchangeBuilder;
+import com.bolyartech.forge.base.http.HttpFunctionality;
+import com.bolyartech.forge.base.task.ExchangeManager;
+import com.bolyartech.forge.base.task.ForgeExchangeManager;
 import com.squareup.otto.Bus;
 
 import org.json.JSONException;
@@ -17,15 +18,19 @@ import org.json.JSONObject;
 /**
  * Created by ogre on 2015-11-01
  */
-public class Res_GetSimpleImpl extends MyResidentComponent implements Res_GetSimple {
+public class Res_GetSimpleImpl extends MyResidentComponent implements Res_GetSimple, ExchangeManager.Listener<ForgeExchangeResult> {
     private State mState = State.IDLE;
     private SimpleGetResult mLastSimpleGetResult;
 
     private long mExchangeId;
 
 
-    public Res_GetSimpleImpl(String baseUrl, MyForgeExchangeManager myForgeExchangeManager, Bus bus) {
-        super(baseUrl, myForgeExchangeManager, bus);
+    public Res_GetSimpleImpl(String baseUrl,
+                             ForgeExchangeManager forgeExchangeManager,
+                             Bus bus,
+                             HttpFunctionality httpFunctionality) {
+
+        super(baseUrl, forgeExchangeManager, bus, httpFunctionality);
     }
 
 
@@ -44,11 +49,11 @@ public class Res_GetSimpleImpl extends MyResidentComponent implements Res_GetSim
         }
 
         mState = State.WAITING_EXCHANGE;
-        mExchangeId = getMyForgeExchangeManager().generateXId();
-        Exchange<ForgeExchangeResult> x = createForgeExchangeBuilder("get_simple.php")
-                .requestType(RestExchangeBuilder.RequestType.GET)
-                .build();
-        getMyForgeExchangeManager().executeExchange(x, mExchangeId);
+
+        ForgeGetHttpExchangeBuilder b = createForgeGetHttpExchangeBuilder("get_simple.php");
+        ForgeExchangeManager em = getForgeExchangeManager();
+        mExchangeId = em.generateTaskId();
+        em.executeExchange(b.build(), mExchangeId);
     }
 
 
@@ -72,24 +77,20 @@ public class Res_GetSimpleImpl extends MyResidentComponent implements Res_GetSim
 
 
     @Override
-    public void onExchangeCompleted(ExchangeOutcome<ForgeExchangeResult> outcome, long exchangeId) {
+    public void onExchangeOutcome(long exchangeId, boolean isSuccess, ForgeExchangeResult result)  {
         if (exchangeId == mExchangeId) {
-            handleExchangeOutcome(outcome, exchangeId);
-        }
-    }
-
-
-    private void handleExchangeOutcome(ExchangeOutcome<ForgeExchangeResult> outcome, long exchangeId) {
-        if (!outcome.isError()) {
-            ForgeExchangeResult rez = outcome.getResult();
-            int code = rez.getCode();
-            if (code > 0) {
-                if (code == ResponseCodes.Oks.SIMPLE_GET_OK.getCode()) {
-                    try {
-                        JSONObject json = new JSONObject(rez.getPayload());
-                        mLastSimpleGetResult = new SimpleGetResult(json.getInt("var1"), json.getString("var2"));
-                        exchangeOk();
-                    } catch (JSONException e) {
+            if (isSuccess) {
+                int code = result.getCode();
+                if (code > 0) {
+                    if (code == ResponseCodes.Oks.SIMPLE_GET_OK.getCode()) {
+                        try {
+                            JSONObject json = new JSONObject(result.getPayload());
+                            mLastSimpleGetResult = new SimpleGetResult(json.getInt("var1"), json.getString("var2"));
+                            exchangeOk();
+                        } catch (JSONException e) {
+                            exchangeFailed();
+                        }
+                    } else {
                         exchangeFailed();
                     }
                 } else {
@@ -98,8 +99,6 @@ public class Res_GetSimpleImpl extends MyResidentComponent implements Res_GetSim
             } else {
                 exchangeFailed();
             }
-        } else {
-            exchangeFailed();
         }
     }
 

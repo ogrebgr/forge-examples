@@ -1,8 +1,6 @@
 package com.bolyartech.forge.android.examples.simple.app;
 
-import android.app.Application;
-
-import com.bolyartech.forge.android.app_unit.UnitManager;
+import com.bolyartech.forge.android.app_unit.UnitApplication;
 import com.bolyartech.forge.base.http.HttpFunctionality;
 import com.bolyartech.forge.base.http.HttpFunctionalityImpl;
 import com.bolyartech.forge.base.task.ForgeExchangeManager;
@@ -15,46 +13,48 @@ import okhttp3.OkHttpClient;
 /**
  * Created by ogre on 2015-11-01 16:03
  */
-public class MyApplication extends Application {
+public class MyApplication extends UnitApplication {
     private ForgeExchangeManager mForgeExchangeManager = new ForgeExchangeManager(new ForgeTaskExecutor());
 
-    private UnitManager mUnitManager;
+    private MyUnitManager mUnitManager;
 
-    private MyForgeExchangeManager mMyForgeExchangeManager;
     private HttpFunctionality mHttpFunctionality;
+    private OkHttpClient mOkHttpClient = new OkHttpClient();
     private Bus mBus = new Bus();
 
 
     @Override
     public void onCreate() {
+        mUnitManager = new MyUnitManager();
+        super.setUnitManager(mUnitManager);
         super.onCreate();
+
 
         mForgeExchangeManager.start();
 
-        mUnitManager = new MyUnitManager();
-
-        mHttpFunctionality = new HttpFunctionalityImpl(new OkHttpClient());
 
 
-        mMyForgeExchangeManager = new MyForgeExchangeManager(mUnitManager, mForgeExchangeFunctionality);
-        mForgeExchangeFunctionality.addListener(mMyForgeExchangeManager);
+        mHttpFunctionality = new HttpFunctionalityImpl(mOkHttpClient);
+
+
+        mForgeExchangeManager = new ForgeExchangeManager(new ForgeTaskExecutor());
+        mForgeExchangeManager.addListener(mUnitManager);
     }
 
 
-    public MyForgeExchangeManager getMyForgeExchangeManager() {
-        return mMyForgeExchangeManager;
+    public ForgeExchangeManager getForgeExchangeManager() {
+        return mForgeExchangeManager;
     }
 
 
     public void shutdown() {
-        mForgeExchangeFunctionality.shutdown();
-        mForgeExchangeFunctionality = null;
+        mForgeExchangeManager.shutdown();
+        mForgeExchangeManager = null;
         mUnitManager = null;
-        mMyForgeExchangeManager = null;
     }
 
 
-    public UnitManager getUnitManager() {
+    public MyUnitManager getMyUnitManager() {
         return mUnitManager;
     }
 
@@ -66,5 +66,10 @@ public class MyApplication extends Application {
 
     public HttpFunctionality getHttpFunctionality() {
         return mHttpFunctionality;
+    }
+
+
+    public OkHttpClient getOkHttpClient() {
+        return mOkHttpClient;
     }
 }

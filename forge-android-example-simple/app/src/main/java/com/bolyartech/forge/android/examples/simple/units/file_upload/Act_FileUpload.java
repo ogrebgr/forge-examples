@@ -5,18 +5,21 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
+import android.webkit.MimeTypeMap;
 import android.widget.Button;
 import android.widget.TextView;
 
 import com.bolyartech.forge.adnroid.examples.simple.R;
+import com.bolyartech.forge.android.app_unit.ResidentComponent;
 import com.bolyartech.forge.android.examples.simple.app.MyActivity;
 import com.bolyartech.forge.android.examples.simple.dialogs.Df_Progress;
 import com.bolyartech.forge.android.examples.simple.dialogs.MyDialogs;
-import com.bolyartech.forge.app_unit.ResidentComponent;
-import com.bolyartech.forge.misc.FileUtils;
-import com.bolyartech.forge.misc.ViewUtils;
+import com.bolyartech.forge.android.misc.FileUtils;
+import com.bolyartech.forge.android.misc.ViewUtils;
 
 import java.io.File;
+
+import okhttp3.MediaType;
 
 
 public class Act_FileUpload extends MyActivity implements Df_Progress.Listener {
@@ -40,7 +43,6 @@ public class Act_FileUpload extends MyActivity implements Df_Progress.Listener {
 
 
         initViews();
-
     }
 
 
@@ -62,7 +64,17 @@ public class Act_FileUpload extends MyActivity implements Df_Progress.Listener {
                 showProgressDialog();
 
                 if (mResident.getState() == Res_FileUpload.State.IDLE) { // prevents double tap
-                    mResident.upload(new File(mFilePath));
+                    String extension = MimeTypeMap.getFileExtensionFromUrl(mFilePath);
+                    String type = null;
+                    if (extension != null) {
+                        type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
+                    }
+
+                    if (type == null) {
+                        type = "application/octet-stream";
+                    }
+
+                    mResident.upload(new File(mFilePath), MediaType.parse(type));
                 }
             }
         });
@@ -74,10 +86,10 @@ public class Act_FileUpload extends MyActivity implements Df_Progress.Listener {
 
     @Override
     public ResidentComponent createResidentComponent() {
-        return new Res_FileUploadImpl(
-                getMyApp().getBus(),
+        return new Res_FileUploadImpl(getMyApp().getBus(),
                 getString(R.string.server_base_url),
-                getMyApp().getHttpFunctionality());
+                getMyApp().getOkHttpClient()
+                );
     }
 
 

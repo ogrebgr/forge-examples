@@ -6,6 +6,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.bolyartech.forge.adnroid.examples.simple.R;
+import com.bolyartech.forge.android.app_unit.ResidentComponent;
 import com.bolyartech.forge.android.examples.simple.app.MyActivity;
 import com.bolyartech.forge.android.examples.simple.dialogs.MyDialogs;
 import com.bolyartech.forge.android.misc.ViewUtils;
@@ -70,8 +71,9 @@ public class Act_Post extends MyActivity {
     @Override
     public ResidentComponent createResidentComponent() {
         return new Res_PostImpl(getString(R.string.server_base_url),
-                getMyApp().getMyForgeExchangeManager(),
-                getMyApp().getBus());
+                getMyApp().getForgeExchangeManager(),
+                getMyApp().getBus(),
+                getMyApp().getHttpFunctionality());
     }
 
 

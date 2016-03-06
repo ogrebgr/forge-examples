@@ -7,7 +7,6 @@ import android.os.Bundle;
 import android.view.View;
 
 import com.bolyartech.forge.adnroid.examples.simple.R;
-import com.bolyartech.forge.android.examples.simple.units.file_download.Act_FileDownload;
 import com.bolyartech.forge.android.examples.simple.units.file_upload.Act_FileUpload;
 import com.bolyartech.forge.android.examples.simple.units.get_param.Act_GetParam;
 import com.bolyartech.forge.android.examples.simple.units.get_simple.Act_GetSimple;
@@ -63,12 +62,12 @@ public class Act_Main extends Activity {
             }
         });
 
-        ViewUtils.initButton(view, R.id.btn_download, new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(Act_Main.this, Act_FileDownload.class);
-                startActivity(intent);
-            }
-        });
+//        ViewUtils.initButton(view, R.id.btn_download, new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                Intent intent = new Intent(Act_Main.this, Act_FileDownload.class);
+//                startActivity(intent);
+//            }
+//        });
     }
 }

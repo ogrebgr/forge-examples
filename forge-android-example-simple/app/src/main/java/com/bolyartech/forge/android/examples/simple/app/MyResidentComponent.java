@@ -1,38 +1,50 @@
 package com.bolyartech.forge.android.examples.simple.app;
 
-import com.bolyartech.forge.android.examples.simple.misc.GsonResultProducer;
-import com.bolyartech.forge.android.misc.AndroidEventPoster;
+import com.bolyartech.forge.android.examples.simple.misc.ForgeGsonResultProducer;
+import com.bolyartech.forge.base.exchange.ForgeExchangeResult;
+import com.bolyartech.forge.base.exchange.ResultProducer;
+import com.bolyartech.forge.base.exchange.builders.ForgeGetHttpExchangeBuilder;
+import com.bolyartech.forge.base.exchange.builders.ForgePostHttpExchangeBuilder;
+import com.bolyartech.forge.base.http.HttpFunctionality;
+import com.bolyartech.forge.base.task.ExchangeManager;
+import com.bolyartech.forge.base.task.ForgeExchangeManager;
 import com.squareup.otto.Bus;
 
 
 /**
  * Created by ogre on 2015-11-02 09:10
  */
-abstract public class MyResidentComponent extends BusResidentComponent {
+abstract public class MyResidentComponent extends BusResidentComponent implements ExchangeManager.Listener<ForgeExchangeResult> {
     private final String mBaseUrl;
-    private final MyForgeExchangeManager mMyForgeExchangeManager;
+    private final ForgeExchangeManager mForgeExchangeManager;
 
-    private final AndroidEventPoster mAndroidEventPoster = new AndroidEventPoster();
+    private HttpFunctionality mHttpFunctionality;
 
-    public MyResidentComponent(String baseUrl, MyForgeExchangeManager myForgeExchangeManager, Bus bus) {
+    private ResultProducer<ForgeExchangeResult> mResultProducer = new ForgeGsonResultProducer();
+
+
+    public MyResidentComponent(String baseUrl,
+                               ForgeExchangeManager forgeExchangeManager,
+                               Bus bus,
+                               HttpFunctionality httpFunctionality) {
         super(bus);
         mBaseUrl = baseUrl;
-        mMyForgeExchangeManager = myForgeExchangeManager;
+        mForgeExchangeManager = forgeExchangeManager;
+        mHttpFunctionality = httpFunctionality;
     }
 
 
-    protected ForgeExchangeBuilder createForgeExchangeBuilder(String endpoint){
-        ForgeExchangeBuilder b = new ForgeExchangeBuilder();
-        b.baseUrl(mBaseUrl);
-        b.endpoint(endpoint);
-        b.resultProducer(new GsonResultProducer());
-        b.resultClass(ForgeExchangeResult.class);
-
-        return b;
+    protected ForgeExchangeManager getForgeExchangeManager() {
+        return mForgeExchangeManager;
     }
 
 
-    protected MyForgeExchangeManager getMyForgeExchangeManager() {
-        return mMyForgeExchangeManager;
+    protected ForgePostHttpExchangeBuilder createForgePostHttpExchangeBuilder(String endpoint) {
+        return new ForgePostHttpExchangeBuilder(mHttpFunctionality, mResultProducer, mBaseUrl + endpoint);
+    }
+
+
+    protected ForgeGetHttpExchangeBuilder createForgeGetHttpExchangeBuilder(String endpoint) {
+        return new ForgeGetHttpExchangeBuilder(mHttpFunctionality, mResultProducer, mBaseUrl + endpoint);
     }
 }

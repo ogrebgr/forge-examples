@@ -1,46 +1,61 @@
 package com.bolyartech.forge.android.examples.simple.units.file_upload;
 
 import com.bolyartech.forge.android.examples.simple.app.BusResidentComponent;
-import com.bolyartech.forge.android.examples.simple.misc.GsonResultProducer;
-import com.bolyartech.forge.exchange.ForgeExchangeResult;
-import com.bolyartech.forge.exchange.ResultProducer;
-import com.bolyartech.forge.http.functionality.HttpFunctionality;
-import com.bolyartech.forge.http.request.PostRequestBuilder;
-import com.bolyartech.forge.http.request.ProgressListener;
+import com.bolyartech.forge.android.examples.simple.misc.ForgeGsonResultProducer;
+import com.bolyartech.forge.base.exchange.ForgeExchangeResult;
+import com.bolyartech.forge.base.exchange.ResultProducer;
+import com.bolyartech.forge.base.http.CountingFileRequestBody;
 import com.squareup.otto.Bus;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
 
-import forge.apache.http.client.methods.HttpPost;
+import okhttp3.Call;
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 
 /**
  * Created by ogre on 2015-11-05 10:18
  */
 public class Res_FileUploadImpl extends BusResidentComponent implements Res_FileUpload {
+    private final org.slf4j.Logger mLogger = LoggerFactory.getLogger(this.getClass()
+            .getSimpleName());
+
     private State mState = State.IDLE;
 
     private long mLastResult;
 
     private final String mBaseUrl;
-    private final HttpFunctionality mHttpFunc;
 
-    private HttpPost mPostRequest;
+    private OkHttpClient mOkHttpClient;
+
+    private float mFileSizeOnePercent;
+
+    private CountingFileRequestBody mFileBody;
+
+    private boolean mAborted = false;
+
+    private Call mCall;
 
 
-    private ProgressListener mProgressListener = new ProgressListener() {
+    private CountingFileRequestBody.ProgressListener mProgressListener = new CountingFileRequestBody.ProgressListener() {
         @Override
-        public void onProgress(final float progress) {
+        public void transferredSoFar(final long num) {
             final Act_FileUpload act = (Act_FileUpload) getActivity();
             if (act != null) {
                 act.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        act.onProgress(progress);
+                        act.onProgress(num / mFileSizeOnePercent);
                     }
                 });
             }
@@ -48,12 +63,12 @@ public class Res_FileUploadImpl extends BusResidentComponent implements Res_File
     };
 
 
-    public Res_FileUploadImpl(Bus bus, String baseUrl, HttpFunctionality httpFunc) {
+    public Res_FileUploadImpl(Bus bus, String baseUrl, OkHttpClient okHttpClient) {
         super(bus);
         mBaseUrl = baseUrl;
-        mHttpFunc = httpFunc;
+        mOkHttpClient = okHttpClient;
+        Call c;
     }
-
 
 
     @Override
@@ -63,35 +78,57 @@ public class Res_FileUploadImpl extends BusResidentComponent implements Res_File
 
 
     @Override
-    public synchronized void upload(final File file) {
+    public synchronized void upload(final File file, final MediaType mt) {
         if (mState == State.IDLE) {
+            mAborted = false;
             mState = State.UPLOADING;
+            mFileSizeOnePercent = file.length() / 100f;
             Thread t = new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    PostRequestBuilder builder = new PostRequestBuilder(mBaseUrl + "upload.php");
-                    builder.fileToUpload("file_upload", file);
-                    builder.progressListener(mProgressListener);
-                    try {
-                        mPostRequest = builder.build();
+                    mFileBody = new CountingFileRequestBody(file, mt, mProgressListener);
 
-                        String rez = mHttpFunc.execute(mPostRequest);
-                        GsonResultProducer rp = new GsonResultProducer();
-                        try {
-                            ForgeExchangeResult frez = rp.produce(rez, ForgeExchangeResult.class);
+                    RequestBody requestBody = new MultipartBody.Builder()
+                            .setType(MultipartBody.FORM)
+                            .addFormDataPart("file_upload", file.getName(), mFileBody)
+                            .build();
+
+
+                    Request request = new Request.Builder().url(mBaseUrl + "upload.php")
+                            .addHeader("Content-Type", "multipart/form-data")
+                            .post(requestBody)
+                            .build();
+
+
+                    mCall = mOkHttpClient.newCall(request);
+                    try {
+                        Response response = mCall.execute();
+
+                        if (response.isSuccessful()) {
+                            ForgeGsonResultProducer rp = new ForgeGsonResultProducer();
+                            ForgeExchangeResult forgeExchangeResult;
                             try {
-                                JSONObject jobj = new JSONObject(frez.getPayload());
-                                mLastResult = jobj.getLong("file_size");
-                                uploadOk();
-                            } catch (JSONException e) {
+                                forgeExchangeResult = rp.produce(response);
+                                try {
+                                    JSONObject jobj = new JSONObject(forgeExchangeResult.getPayload());
+                                    mLastResult = jobj.getLong("file_size");
+                                    uploadOk();
+                                } catch (JSONException e) {
+                                    uploadFailed();
+                                }
+                            } catch (ResultProducer.ResultProducerException e) {
+                                mLogger.error("Unable to produce ForgeExchangeResult: {}", e);
                                 uploadFailed();
                             }
-                        } catch (ResultProducer.ResultProducerException e) {
+                        } else {
+                            mLogger.error("Error uploading file. Code {}", response.code());
                             uploadFailed();
                         }
-
                     } catch (IOException e) {
-                        uploadFailed();
+                        if (!mCall.isCanceled()) {
+                            mLogger.error("Error uploading file: {}", e);
+                            uploadFailed();
+                        }
                     }
                 }
             });
@@ -105,7 +142,7 @@ public class Res_FileUploadImpl extends BusResidentComponent implements Res_File
     @Override
     public synchronized void reset() {
         mState = State.IDLE;
-        mPostRequest = null;
+        mFileBody = null;
     }
 
 
@@ -118,42 +155,43 @@ public class Res_FileUploadImpl extends BusResidentComponent implements Res_File
     @Override
     public synchronized void abortUpload() {
         if (mState == State.UPLOADING) {
-            mPostRequest.abort();
+            mAborted = true;
+            if (mCall != null) {
+                mCall.cancel();
+            }
         }
     }
 
 
     private synchronized void uploadOk() {
-        if (mPostRequest != null && !mPostRequest.isAborted()) {
-            mState = State.UPLOAD_OK;
+        mState = State.UPLOAD_OK;
 
-            final Act_FileUpload act = (Act_FileUpload) getActivity();
-            if (act != null) {
-                act.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        act.onUploadOk();
-                    }
-                });
-            }
+        final Act_FileUpload act = (Act_FileUpload) getActivity();
+        if (act != null) {
+            act.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    act.onUploadOk();
+                }
+            });
         }
     }
 
 
     private synchronized void uploadFailed() {
-        if (mPostRequest != null && !mPostRequest.isAborted()) {
-            mState = State.UPLOAD_FAIL;
+        mState = State.UPLOAD_FAIL;
 
-
-            final Act_FileUpload act = (Act_FileUpload) getActivity();
-            if (act != null) {
-                act.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        act.onUploadFailed();
-                    }
-                });
-            }
+        final Act_FileUpload act = (Act_FileUpload) getActivity();
+        if (act != null) {
+            act.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    act.onUploadFailed();
+                }
+            });
         }
     }
 }
+
+
+
