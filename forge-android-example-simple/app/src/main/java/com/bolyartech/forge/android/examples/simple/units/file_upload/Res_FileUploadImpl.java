@@ -36,7 +36,7 @@ public class Res_FileUploadImpl extends BusResidentComponent implements Res_File
 
     private final String mBaseUrl;
 
-    private OkHttpClient mOkHttpClient;
+    private final OkHttpClient mOkHttpClient;
 
     private float mFileSizeOnePercent;
 

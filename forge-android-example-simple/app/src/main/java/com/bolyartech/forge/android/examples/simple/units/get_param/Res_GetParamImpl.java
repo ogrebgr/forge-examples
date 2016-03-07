@@ -25,7 +25,10 @@ public class Res_GetParamImpl extends MyResidentComponent implements Res_GetPara
     private long mExchangeId;
 
 
-    public Res_GetParamImpl(String baseUrl, ForgeExchangeManager forgeExchangeManager, Bus bus, HttpFunctionality httpFunctionality) {
+    public Res_GetParamImpl(String baseUrl,
+                            ForgeExchangeManager forgeExchangeManager,
+                            Bus bus,
+                            HttpFunctionality httpFunctionality) {
         super(baseUrl, forgeExchangeManager, bus, httpFunctionality);
     }
 
